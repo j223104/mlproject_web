@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta property="og:title" content="비크코인 캔들차트 머신러닝" />
+<meta property="og:description" content="비트코인 지금 사면 15분 뒤 오를까 내릴까? " />
+<meta property="og:image" content="/static/images/btc_large_large.jpg" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+crossorigin="anonymous"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<title>CNN 머신러닝으로 캔들차트 예측하기!</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Kirang+Haerang&display=swap" rel="stylesheet">
+<style>
+* {
+font-family: 'Do Hyeon', sans-serif;
+}
+.all{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.mypic {
+width: 100%;
+max-width: 700px;
+height: 200px;
+left : 50%;
+margin: 0 auto;
+background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/static/images/btc_large_large.jpg');
+background-position: center 30%;
+background-size: cover;
+color: white;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+}
+
+.box {
+    width: 95%;
+    display: flex;
+    flex-direction: column;
+    max-width: 650px;
+    margin: 20px auto 20px auto;
+
+    box-shadow: 0px 0px 3px 0px black;
+    padding: 20px;
+    justify-content:center;
+    align-items: center;
+}
+
+.box > button {
+margin-top: 15px;
+}
+
+
+.image_box{
+    margin-top: 30px;
+    width: 300px;
+    height: 300px;
+    border-color: black;
+    box-shadow: 0px 0px 3px 0px black;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    align-items: center;+
+    justify-content: center;
+    flex-direction: column;
+    display: flex;
+}
+.imga{
+    align-self: center;
+    width: 200px;
+    height: 200px;
+    left:50%;
+    top:50%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: auto;
+    margin-bottom: auto;
+    display:block;
+
+}
+.result_box{
+    width: 450px;
+    height: 200px;
+    border-radius: 30px;
+    box-shadow: 0px 0px 2px 0px black ;
+    background-color: lightyellow;
+    right : 10%;
+    margin-top: 10px;
+    align-items: center;
+}
+.bring_img-btn{
+
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+    margin-top: 10px;
+    background: palegreen;
+    color:black;
+    width: 121px;
+    height: 48px;
+    font-size: 16px;
+    box-shadow: 0px 4px 5px rgba(0, 0, 0, 0.14), 0px 1px 10px rgba(0, 0, 0, 0.12), 0px 2px 4px rgba(0, 0, 0, 0.2);
+    border-radius: 50px;
+
+}
+.show-result-btn{
+
+
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+    background: indianred;
+    color:whitesmoke;
+    width: 121px;
+    height: 48px;
+    font-size: 16px;
+    align-self: center;
+
+    box-shadow: 0px 4px 5px rgba(0, 0, 0, 0.14), 0px 1px 10px rgba(0, 0, 0, 0.12), 0px 2px 4px rgba(0, 0, 0, 0.2);
+border-radius: 50px;
+}
+.warning{
+    color: red;
+    font-style: italic;
+    align-self: center;
+    justify-content: center;
+    display: flex;
+}
+.chart{
+     align-self: center;
+    justify-content: center;
+    display: flex;
+    font-size: x-large;
+
+}
+
+.go_back{
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+    margin-top: 10px;
+    background: black;
+    color:whitesmoke;
+    width: 121px;
+    height: 48px;
+    font-size: 16px;
+    box-shadow: 0px 4px 5px rgba(0, 0, 0, 0.14), 0px 1px 10px rgba(0, 0, 0, 0.12), 0px 2px 4px rgba(0, 0, 0, 0.2);
+    border-radius: 50px;
+    margin-left: auto;
+    margin-right:auto ;
+}
+.hide_sec{
+    align-items: center;
+    flex-direction: column;
+    display: flex;
+}
+.result{
+    text-align: center;
+    display: flex;
+    flex-direction:column;
+    justify-content: center;
+    align-self: center;
+    margin-top: 20px;}
+.load{
+    height: 30px;
+    align-self: center;
+    margin-top: 5px;
+}
+</style>
+<script>
+$(document).ready(function(){});
+function reload(){
+    window.location.reload();}
+function loading_img(){   $('#loading').show()}
+function close_load(){   $('#loading').hide()}
+function show_time(){
+    let today = new Date();
+    let date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+    let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+    let date_n_time = date + ' ' + time;
+    $('#time').text(date_n_time);
+}
+
+function bring_image() {
+    loading_img()
+    $.ajax({
+        type: "GET",
+        url: "/mlbitcoin1",
+        success: function (data) {
+            let a = `<div><p>지금 <span style="color: red; font-size:x-large; " >매수</span>하세요!</p>
+                                <br>지금 매수하고 15분 뒤 매도하면 수익이 예상됩니다!</br></div>`;
+            let b =`<div><p>지금 <span style="color: red; font-size:x-large; " >유지</span>하세요!</p>
+                                    <br>괜히 수수료만 내게 될 것 같아요!</br></div>`;
+            let c =`<div><p>지금 <span style="color: red; font-size:x-large; " >매도</span>하세요!</p>
+                                     <br>15분 뒤 가격이 하락합니다!</br></div>`;
+            let d =`<div><p style="color: red; font-size:x-large; ">현재 예측에 문제가 발생했습니다!</p></div>`;
+
+            if (data  === "0"){$('#my_position').append(b);console.log(data) }
+            else if (data  === "1"){$('#my_position').append(b);console.log(data) }
+            else if (data  === "2"){$('#my_position').append(b);console.log(data) }
+            else{$('#my_position').append(d);alert(data) }
+            console.log(data) ;
+            close_load();
+            show_img();
+            show_time();
+            open_hidebox();        }
+        }
+    )
+
+
+}
+
+function open_hidebox(){
+    $('#result_btn').show()
+        }
+function open_result(){
+    $('#hide-section').show()
+    }
+function show_img(){
+    $('#imga').show()
+    }
+function hide_btn(){
+    $('#show_btn').hide()
+}
+</script>
+</head>
+<body>
+
+<div class = "all">
+
+    <div class="mypic">
+        <h1>지금 비트코인 살까 말까?</h1>
+        <p style="font-size: large">비트코인 캔들차트 이미지를 이용하여 <span style="color:yellow">CNN 딥러닝</span>을 통해 15분 뒤를 예측합니다.</p>
+    </div>
+    <div class="box">
+        <h3 class = chart>직전 100분 간의 비트코인/달러 5분 봉 차트</h3>
+        <button onclick=" bring_image();" type="button" class="bring_img-btn" id = "show_btn">차트 불러오기</button>
+         <div class = "image_box">
+             <img class=load id=loading style='display: none' src = "/static/images/Spinner-3.gif"  alt ="loading">
+            <img class=imga id=imga style='display: none' src = "/static/images/img_file.png"  alt ="chart">
+          </div>
+        <p>확인 시각 : <span style="color: red" id = time></span></p>
+         <button id = result_btn style="display: none" onclick=" open_result();hide_btn()" type="button" class="show-result-btn">결과 확인하기</button>
+         <div class = hide_sec id = hide-section style = "display:none" >
+            <div class = "result_box" >
+             <div class = "result" id = "my_position">
+             </div>
+        </div>
+       <p class = warning> ※ 모든 투자자의 책임은 본인에게 있습니다 ※</p>
+       <button id = goback  onclick="reload()" type="button" class="go_back">돌아가기</button>
+    </div>
+
+</div>
+
+</div>
+</body>
